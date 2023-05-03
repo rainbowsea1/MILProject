@@ -4,6 +4,7 @@ import cv2
 from PIL import Image
 from multiprocessing import Pool
 import argparse
+
 from IPython import embed #to debug
 import skvideo.io
 import scipy.misc
