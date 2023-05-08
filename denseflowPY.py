@@ -5,10 +5,11 @@ from multiprocessing import Pool
 
 import numpy as np
 import cv2
+import skvideo
 from PIL import Image
 from skvideo import io
 from scipy import misc
-
+skvideo.setFFmpegPath(r'E:\ffmpeg-6.0-essentials_build\bin')
 
 def ToImg(raw_flow, bound):
     '''
@@ -22,7 +23,7 @@ def ToImg(raw_flow, bound):
     flow[flow > bound] = bound
     flow[flow < -bound] = -bound
     flow -= -bound
-    flow *= (255/float(2*bound))
+    flow *= (255 / float(2 * bound))
     return flow
 
 
@@ -65,6 +66,7 @@ def save_flows(flows, image, save_dir, num, bound):
 
 
 def dense_flow(*args):
+    print("进入dense_flow")
     '''
     To extract dense_flow images
     :param augs:the detailed augments:
@@ -75,23 +77,26 @@ def dense_flow(*args):
     :return: no returns
     '''
     video_name, save_dir, step, bound = args
+    src_folder = 'E:/datasets/UCF_I3D/Abuse/'
     video_file = os.path.join(src_folder, video_name)
 
     # provide two video-read methods: cv2.VideoCapture() and skvideo.io.vread(), both of which need ffmpeg support
-    # videocapture=cv2.VideoCapture(video_path)
-    # if not videocapture.isOpened():
-    #     print 'Could not initialize capturing! ', video_name
-    #     exit()
+    #  videocapture = cv2.VideoCapture(video_file)
+    #  if not videocapture.isOpened():
+    #      print 'Could not initialize capturing! ', video_name
+    #      exit()
+    videocapture = io.vread(video_file)
     try:
         videocapture = io.vread(video_file)
     except:
-        print( "{} read error! ".format(video_name))
+        print("{} read error! ".format(video_name))
         return 0
 
     if videocapture.sum() == 0:
         # if extract nothing, exit!
-        print( "Could not initialize capturing".format(video_name))
+        print("Could not initialize capturing".format(video_name))
         exit()
+    print("extract something")
 
     len_frame = len(videocapture)
     frame_num = 0
@@ -136,7 +141,7 @@ def dense_flow(*args):
         while step_t > 1:
             num0 += 1
             step_t -= 1
-
+    print("finish")
 
 def get_video_list(src_folder):
     video_list = [v for v in os.listdir(src_folder) if v != '.DS_Store']
@@ -146,8 +151,8 @@ def get_video_list(src_folder):
 def parse_args():
     parser = argparse.ArgumentParser(
         description="densely extract the video frames and optical flows")
-    parser.add_argument('--src_folder', type=str)
-    parser.add_argument('--out_folder', type=str)
+    parser.add_argument('--src_folder', default='E:/datasets/UCF_I3D/Abuse/',type=str)
+    parser.add_argument('--out_folder', default='E:/datasets/UCF_I3D/Abuse/',type=str)
     parser.add_argument('--num_workers', default=2, type=int,
                         help='num of workers to act multi-process')
     parser.add_argument('--step', default=1, type=int, help='gap frames')
@@ -162,10 +167,21 @@ def parse_args():
 
 
 if __name__ == "__main__":
+
+    #convert_audio("E:/datasets/UCF_I3D/Abuse/v_1.mp4")
+    #convert_audio("C:/Users/Nick/Desktop/m4atomp3/YesterdayOnceMore.m4a")
+
+    skvideo.setFFmpegPath(r'C:/Users/admin/Downloads/ffmpeg-6.0-essentials_build/ffmpeg-6.0-essentials_build/bin')
+    #vediodata = skvideo.io.FFmpegReader('E:/datasets/UCF_I3D/Abuse/v_1.mp4')
+
     args = parse_args()
 
     src_folder = args.src_folder
     out_folder = args.out_folder
+    # src_folder = 'E:/datasets/UCF_I3D/Abuse/'
+
+    # src_folder = 'E:/datasets/UCF_Crime_100GB/Abuse/Abuse'
+    # out_folder = 'E:/datasets/UCF_I3D/Abuset'
     num_workers = args.num_workers
     step = args.step
     bound = args.bound
